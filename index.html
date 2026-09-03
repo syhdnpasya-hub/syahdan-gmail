@@ -84,9 +84,9 @@
     gantiHalaman('riwayat');
   }
 
-  function gantiHalaman(halaman) {
-    document.querySelectorAll('.nav-item').forEach(el => el.classList.remove('active'));
-    event.target.closest('.nav-item').classList.add('active');
+  function gantiHalaman(halaman, el) {
+    document.querySelectorAll('.nav-item, .nav-center').forEach(item => item.classList.remove('active'));
+    el.classList.add('active');
     
     let isi = '';
     if(halaman == 'beranda') {
