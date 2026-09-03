@@ -1,94 +1,48 @@
 <!DOCTYPE html>
-<html lang="id">
+<html>
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Setoran Harian - Syahdan</title>
-<script src="https://cdn.tailwindcss.com"></script>
+  <title>Login Setoran Syahdan</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <style>
+    body { font-family: Arial; display: flex; justify-content: center; align-items: center; height: 100vh; background: #f0f2f5; }
+    .box { background: white; padding: 40px; border-radius: 10px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); text-align: center; }
+    button { background: #4285F4; color: white; border: none; padding: 12px 24px; font-size: 16px; border-radius: 5px; cursor: pointer; }
+    button:hover { background: #357ae8; }
+  </style>
 </head>
-<body class="bg-gradient-to-br from-blue-50 to-indigo-100 min-h-screen p-4">
-  <div class="max-w-5xl mx-auto">
-    <div class="bg-white p-6 rounded-2xl shadow-lg mb-6">
-      <h1 class="text-3xl font-bold text-center text-indigo-600 mb-2">📒 Catatan Setoran Harian</h1>
-      <p class="text-center text-gray-500">Data tersimpan otomatis & bisa diakses bersama</p>
-    </div>
-
-    <div class="bg-white p-6 rounded-2xl shadow-lg mb-6">
-      <h2 class="text-xl font-semibold mb-4">+ Tambah Setoran Baru</h2>
-      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-4">
-        <div><label class="text-sm text-gray-600">Tanggal</label><input id="tanggal" type="date" class="border p-2 rounded w-full mt-1"></div>
-        <div><label class="text-sm text-gray-600">Nama</label><input id="nama" type="text" placeholder="Nama" class="border p-2 rounded w-full mt-1"></div>
-        <div><label class="text-sm text-gray-600">Nominal</label><input id="nominal" type="number" placeholder="50000" class="border p-2 rounded w-full mt-1"></div>
-        <div><label class="text-sm text-gray-600">Keterangan</label><input id="keterangan" type="text" placeholder="Setoran ke..." class="border p-2 rounded w-full mt-1"></div>
-      </div>
-      <button id="btnTambah" class="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-3 rounded-lg">Tambah Setoran</button>
-    </div>
-
-    <div class="bg-white p-6 rounded-2xl shadow-lg">
-      <div class="flex justify-between items-center mb-4">
-        <h2 id="total" class="text-xl font-bold text-green-600">Total Setoran: Rp 0</h2>
-        <h2 id="jumlah" class="text-sm text-gray-500">Jumlah Data: 0</h2>
-      </div>
-      <div class="overflow-x-auto">
-        <table class="w-full text-sm">
-          <thead class="bg-indigo-100 text-indigo-700">
-            <tr><th class="p-3 text-left">Tanggal</th><th class="p-3 text-left">Nama</th><th class="p-3 text-right">Nominal</th><th class="p-3 text-left">Keterangan</th><th class="p-3 text-center">Aksi</th></tr>
-          </thead>
-          <tbody id="tbody"></tbody>
-        </table>
-      </div>
-    </div>
+<body>
+  <div class="box">
+    <h2>Login Setoran Syahdan</h2>
+    <button id="loginBtn">Login dengan Google</button>
+    <p id="userInfo"></p>
   </div>
 
-<script type="module">
-  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
-  import { getFirestore, collection, addDoc, onSnapshot, query, orderBy, deleteDoc, doc } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+  <script type="module">
+    // 1. GANTI INI DENGAN CONFIG PUNYA KAMU
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+    import { getAuth, GoogleAuthProvider, signInWithPopup } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
 
-  const firebaseConfig = {
-    apiKey: "AIzaSyBBI3sYLUgIf8RL-XNRHkguAEM3ssHhetE",
-    authDomain: "setoran-syahdantampan.firebaseapp.com",
-    projectId: "setoran-syahdantampan",
-    storageBucket: "setoran-syahdantampan.firebasestorage.app",
-    messagingSenderId: "202438437194",
-    appId: "1:202438437194:web:b049b1a12eed3aa33cb9b3",
-    measurementId: "G-891LD887E2"
-  };
+    const firebaseConfig = {
+      apiKey: "GANTI_DENGAN_APIKEY_KAMU",
+      authDomain: "setoran-syahdantampan.firebaseapp.com",
+      projectId: "setoran-syahdantampan",
+      appId: "GANTI_DENGAN_APPID_KAMU"
+    };
 
-  const app = initializeApp(firebaseConfig);
-  const db = getFirestore(app);
-  const setoranRef = collection(db, "setoran");
-  let dataSetoran = [];
+    const app = initializeApp(firebaseConfig);
+    const auth = getAuth(app);
 
-  document.getElementById('btnTambah').onclick = async function() {
-    const nama = document.getElementById('nama').value;
-    const nominal = document.getElementById('nominal').value;
-    const tanggal = document.getElementById('tanggal').value;
-    const keterangan = document.getElementById('keterangan').value;
-    if(!nama || !nominal || !tanggal) { alert('Lengkapi Nama, Nominal, Tanggal!'); return; }
-    await addDoc(setoranRef, { nama, nominal: Number(nominal), tanggal, keterangan, createdAt: new Date() });
-    document.getElementById('nama').value = ''; document.getElementById('nominal').value = ''; document.getElementById('keterangan').value = ''; document.getElementById('tanggal').value = '';
-  }
-
-  window.hapusData = async function(id) {
-    if(confirm('Yakin hapus data ini?')) await deleteDoc(doc(db, "setoran", id));
-  }
-
-  function renderTabel() {
-    const tbody = document.getElementById('tbody'); tbody.innerHTML = ''; let total = 0;
-    dataSetoran.forEach((d) => {
-      total += d.nominal;
-      tbody.innerHTML += `<tr class="border-b hover:bg-gray-50"><td class="p-3">${d.tanggal}</td><td class="p-3 font-medium">${d.nama}</td><td class="p-3 text-right font-bold text-green-600">Rp ${d.nominal.toLocaleString('id-ID')}</td><td class="p-3 text-gray-600">${d.keterangan || '-'}</td><td class="p-3 text-center"><button onclick="hapusData('${d.id}')" class="bg-red-500 hover:bg-red-600 text-white px-3 py-1 rounded text-xs">Hapus</button></td></tr>`;
-    });
-    document.getElementById('total').innerText = `Total Setoran: Rp ${total.toLocaleString('id-ID')}`;
-    document.getElementById('jumlah').innerText = `Jumlah Data: ${dataSetoran.length}`;
-  }
-
-  const q = query(setoranRef, orderBy("createdAt", "desc"));
-  onSnapshot(q, (snapshot) => {
-    dataSetoran = [];
-    snapshot.forEach((docSnap) => { dataSetoran.push({ id: docSnap.id, ...docSnap.data() }); });
-    renderTabel();
-  });
-</script>
+    // 2. TOMBOL LOGIN
+    document.getElementById("loginBtn").onclick = () => {
+      const provider = new GoogleAuthProvider();
+      signInWithPopup(auth, provider)
+        .then((result) => {
+          document.getElementById("userInfo").innerText = "Halo " + result.user.displayName;
+        })
+        .catch((error) => {
+          alert("Error: " + error.message);
+        });
+    };
+  </script>
 </body>
 </html>
