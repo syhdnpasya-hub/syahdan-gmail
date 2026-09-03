@@ -1,329 +1,109 @@
 <!DOCTYPE html>
 <html lang="id">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>STORAN SYAHDANTAMPAN</title>
-  <style>
-    * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Poppins', Arial; }
-    body { background: #f5f3ff; padding-bottom: 80px; }
-.header { background: white; padding: 15px 20px; display: flex; justify-content: space-between; align-items: center; }
-.logo { display: flex; align-items: center; gap: 10px; font-weight: bold; font-size: 16px; }
-.logo-box { background: linear-gradient(135deg, #9333ea, #ec4899); width: 38px; height: 38px; border-radius: 12px; display: flex; align-items: center; justify-content: center; color: white; font-size: 20px; }
-.logo span { color: #9333ea; }
-.card { background: white; margin: 15px; padding: 20px; border-radius: 16px; }
-.card-ungu { background: linear-gradient(135deg, #9333ea, #7e22ce); color: white; border-radius: 16px; padding: 20px; margin: 15px; text-align: center; }
-.btn { background: #9333ea; color: white; width: 100%; padding: 12px; border: none; border-radius: 10px; font-weight: bold; cursor: pointer; }
-.btn-outline { background: white; color: #9333ea; border: 1px solid #e9d5ff; }
-.btn-hijau { background: #10b981; }
-.btn-merah { background: #ef4444; }
-.btn-kuning { background: #f59e0b; }
-.btn-abu { background: #6b7280; }
-.email-item { background: #faf5ff; padding: 12px; border-radius: 10px; margin-bottom: 10px; display: flex; justify-content: space-between; align-items: center; }
-.user-card { background: white; padding: 15px; border-radius: 16px; margin-bottom: 10px; box-shadow: 0 2px 5px rgba(0,0,0,0.05); cursor: pointer; }
-.user-card:hover { background: #faf5ff; }
-.badge { padding: 4px 10px; border-radius: 20px; font-size: 12px; font-weight: 600; }
-.badge.belum { background: #fef3c7; color: #d97706; }
-.badge.pending { background: #dbeafe; color: #2563eb; }
-.badge.diterima { background: #d1fae5; color: #059669; }
-.badge.ditolak { background: #fee2e2; color: #dc2626; }
-.textarea { width: 100%; height: 150px; border: 1px solid #e9d5ff; border-radius: 10px; padding: 10px; margin: 10px 0; }
-.nav-bottom { position: fixed; bottom: 0; left: 0; right: 0; background: white; display: flex; justify-content: space-around; padding: 10px 0; border-top: 1px solid #e9d5ff; }
-.nav-item { text-align: center; font-size: 12px; color: #6b7280; cursor: pointer; }
-.nav-item.active { color: #9333ea; font-weight: bold; }
-.nav-center { background: linear-gradient(135deg, #9333ea, #ec4899); width: 55px; height: 55px; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin-top: -15px; color: white; font-size: 22px; cursor: pointer; }
-.input { width: 100%; padding: 10px; border: 1px solid #e9d5ff; border-radius: 10px; margin: 10px 0; }
-.select { width: 100%; padding: 10px; border: 1px solid #e9d5ff; border-radius: 10px; margin: 10px 0; }
-.note { background: #fef3c7; color: #92400e; padding: 10px; border-radius: 8px; font-size: 12px; margin: 10px 0; }
-.info-row { display: flex; justify-content: space-between; padding: 12px 0; border-bottom: 1px solid #f3e8ff; }
-.info-label { color: #6b7280; font-size: 13px; }
-.info-value { font-weight: 600; font-size: 14px; }
-.checkbox { width: 20px; height: 20px; cursor: pointer; }
-  </style>
-</head>
-<body>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Setoran Harian</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+  import { getFirestore, collection, addDoc, getDocs, onSnapshot, query, orderBy, deleteDoc, doc } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
-  <div class="header">
-    <div class="logo">
-      <div class="logo-box">📤</div>
-      <div><span>STORAN</span> SYAHDANTAMPAN</div>
-    </div>
-    <div id="adminBtn" style="background: #fee2e2; padding: 6px 12px; border-radius: 20px; color: #dc2626; cursor: pointer;" onclick="loginAdmin()">Admin</div>
-  </div>
+  // INI KODE KAMU
+  const firebaseConfig = {
+    apiKey: "AIzaSyBBI3sYLUgIf8RL-XNRHkguAEM3ssHhetE",
+    authDomain: "setoran-syahdantampan.firebaseapp.com",
+    projectId: "setoran-syahdantampan",
+    storageBucket: "setoran-syahdantampan.firebasestorage.app",
+    messagingSenderId: "202438437194",
+    appId: "1:202438437194:web:b049b1a12eed3aa33cb9b3",
+    measurementId: "G-891LD887E2"
+  };
 
-  <div id="halaman">Loading...</div>
+  const app = initializeApp(firebaseConfig);
+  const db = getFirestore(app);
+  const setoranRef = collection(db, "setoran");
 
-  <div id="navUser" class="nav-bottom">
-    <div class="nav-item active" onclick="gantiHalaman('beranda', this)">🏠<br>Beranda</div>
-    <div class="nav-item" onclick="gantiHalaman('riwayat', this)">🕒<br>Riwayat</div>
-    <div class="nav-center" onclick="gantiHalaman('stor', this)">✈️</div>
-    <div class="nav-item" onclick="gantiHalaman('saldo', this)">💳<br>Saldo</div>
-    <div class="nav-item" onclick="gantiHalaman('profil', this)">👤<br>Profil</div>
-  </div>
+  let dataSetoran = [];
 
-  <div id="navAdmin" class="nav-bottom" style="display:none;">
-    <div class="nav-item active" onclick="gantiHalaman('admin', this)">📊<br>Dashboard</div>
-    <div class="nav-item" onclick="gantiHalaman('adminSetoran', this)">📥<br>Setoran</div>
-    <div class="nav-item" onclick="gantiHalaman('adminWithdraw', this)">💸<br>Withdraw</div>
-    <div class="nav-item" onclick="gantiHalaman('adminUser', this)">👥<br>User</div>
-    <div class="nav-item" onclick="gantiHalaman('adminSetting', this)">⚙️<br>Setting</div>
-    <div class="nav-item" onclick="logoutAdmin()">🚪<br>Keluar</div>
-  </div>
+  window.tambahSetoran = async function() {
+    const nama = document.getElementById('nama').value;
+    const nominal = document.getElementById('nominal').value;
+    const tanggal = document.getElementById('tanggal').value;
+    const keterangan = document.getElementById('keterangan').value;
 
-<script>
-  let isAdmin = false;
-  let emails = [];
-  let selectedUser = null;
-  let dataUser = JSON.parse(localStorage.getItem('dataUser')) || {saldo: 80000, email: 'user@gmail.com', dana: '', bank: '', noRek: '', loginMethod: 'Browser', device: navigator.userAgent};
-  let semuaEmail = JSON.parse(localStorage.getItem('semuaEmail')) || [];
-  let semuaWithdraw = JSON.parse(localStorage.getItem('semuaWithdraw')) || [];
-  let setting = JSON.parse(localStorage.getItem('setting')) || {harga: 3500, passwordAdmin: 'admin123'};
+    if(!nama || !nominal || !tanggal) {
+      alert('Nama, Nominal, dan Tanggal wajib diisi!');
+      return;
+    }
 
-  // Simpan device info pas pertama
-  if(!dataUser.device) {
-    dataUser.device = navigator.userAgent;
-    dataUser.loginMethod = 'Browser';
-    localStorage.setItem('dataUser', JSON.stringify(dataUser));
-  }
-
-  function generateRandomEmail() {
-    const nama = ['budi','andi','joko','agus','dedi'];
-    const blkg = ['saputra','wijaya','pratama','setiawan'];
-    return `${nama[Math.floor(Math.random()*5)]}${blkg[Math.floor(Math.random()*4)]}${Math.floor(Math.random()*100)}@gmail.com`;
-  }
-
-  function generateEmails() {
-    emails = [];
-    for(let i = 0; i < 100; i++) { emails.push(generateRandomEmail()); }
-    gantiHalaman('beranda', document.querySelector('.nav-item'));
-  }
-
-  function salinSemua() {
-    navigator.clipboard.writeText(emails.join('\n'));
-    alert('100 Email berhasil disalin!');
-  }
-
-  function kirimSetoran() {
-    const textarea = document.getElementById('textareaSetoran');
-    const dana = document.getElementById('inputDana').value;
-    const listEmail = textarea.value.split('\n').filter(e => e.includes('@gmail.com'));
-    if(listEmail.length === 0) { alert('Isi email dulu bang!'); return; }
-    if(dana === '') { alert('Isi No Dana dulu!'); return; }
-
-    dataUser.dana = dana;
-    localStorage.setItem('dataUser', JSON.stringify(dataUser));
-
-    listEmail.forEach(email => {
-      semuaEmail.unshift({
-        id: Date.now() + Math.random(),
-        user: dataUser.email,
-        email: email,
-        dana: dana,
-        tanggalStor: new Date().toLocaleString('id-ID'),
-        tanggalVerifikasi: '-',
-        status: 'Pending',
-        alasan: ''
-      });
+    await addDoc(setoranRef, {
+      nama, nominal: Number(nominal), tanggal, keterangan,
+      createdAt: new Date()
     });
-    localStorage.setItem('semuaEmail', JSON.stringify(semuaEmail));
-    textarea.value = '';
-    alert(`Berhasil kirim ${listEmail.length} email!`);
-    gantiHalaman('riwayat', document.querySelectorAll('.nav-item')[1]);
+    
+    document.getElementById('nama').value = '';
+    document.getElementById('nominal').value = '';
+    document.getElementById('keterangan').value = '';
   }
 
-  function requestWithdraw() {
-    const bank = document.getElementById('selectBank').value;
-    const noRek = document.getElementById('inputNoRek').value;
-    const nominal = parseInt(document.getElementById('inputNominal').value);
-    if(bank === '' || noRek === '' || isNaN(nominal)) { alert('Lengkapi semua data!'); return; }
-    if(nominal < 10000) { alert('Minimal withdraw Rp10.000'); return; }
-    if(nominal > dataUser.saldo) { alert('Saldo tidak cukup!'); return; }
-    const diterima = nominal - 1000;
-    dataUser.bank = bank; dataUser.noRek = noRek;
-    localStorage.setItem('dataUser', JSON.stringify(dataUser));
-    semuaWithdraw.unshift({id: Date.now(), user: dataUser.email, bank: bank, noRek: noRek, nominal: nominal, diterima: diterima, tanggal: new Date().toLocaleString('id-ID'), status: 'Pending'});
-    localStorage.setItem('semuaWithdraw', JSON.stringify(semuaWithdraw));
-    dataUser.saldo -= nominal;
-    localStorage.setItem('dataUser', JSON.stringify(dataUser));
-    alert(`Withdraw Rp${nominal.toLocaleString()} berhasil!`);
-    gantiHalaman('saldo', document.querySelectorAll('.nav-item')[3]);
+  window.hapusData = async function(id) {
+    if(confirm('Yakin hapus data ini?')){
+      await deleteDoc(doc(db, "setoran", id));
+    }
   }
 
-  function loginAdmin() {
-    const pass = prompt('Masukkan Password Admin:');
-    if(pass === setting.passwordAdmin) {
-      isAdmin = true;
-      document.getElementById('navUser').style.display = 'none';
-      document.getElementById('navAdmin').style.display = 'flex';
-      document.getElementById('adminBtn').innerText = 'Admin Aktif';
-      gantiHalaman('admin', document.querySelector('#navAdmin.nav-item'));
-    } else { alert('Password Salah!'); }
+  function renderTabel() {
+    const tbody = document.getElementById('tbody');
+    tbody.innerHTML = '';
+    let total = 0;
+    dataSetoran.forEach((d) => {
+      total += d.nominal;
+      tbody.innerHTML += `
+        <tr class="border-b">
+          <td class="p-2">${d.tanggal}</td>
+          <td class="p-2">${d.nama}</td>
+          <td class="p-2 text-right">Rp ${d.nominal.toLocaleString('id-ID')}</td>
+          <td class="p-2">${d.keterangan}</td>
+          <td class="p-2 text-center"><button onclick="hapusData('${d.id}')" class="text-red-500">Hapus</button></td>
+        </tr>
+      `;
+    });
+    document.getElementById('total').innerText = `Total: Rp ${total.toLocaleString('id-ID')}`;
   }
 
-  function logoutAdmin() {
-    isAdmin = false;
-    document.getElementById('navUser').style.display = 'flex';
-    document.getElementById('navAdmin').style.display = 'none';
-    document.getElementById('adminBtn').innerText = 'Admin';
-    gantiHalaman('beranda', document.querySelector('#navUser.nav-item'));
-  }
+  const q = query(setoranRef, orderBy("createdAt", "desc"));
+  onSnapshot(q, (snapshot) => {
+    dataSetoran = [];
+    snapshot.forEach((docSnap) => {
+      dataSetoran.push({ id: docSnap.id, ...docSnap.data() });
+    });
+    renderTabel();
+  });
 
-  function ubahStatusEmail(id, status) {
-    const email = semuaEmail.find(e => e.id === id);
-    if(status === 'Diterima' && email.status === 'Pending') {
-      dataUser.saldo += setting.harga;
-      localStorage.setItem('dataUser', JSON.stringify(dataUser));
-      email.tanggalVerifikasi = new Date().toLocaleString('id-ID');
-    }
-    if(status === 'Ditolak') {
-      const alasan = prompt('Alasan penolakan:');
-      email.alasan = alasan || 'Tidak valid';
-      email.tanggalVerifikasi = new Date().toLocaleString('id-ID');
-    }
-    email.status = status;
-    localStorage.setItem('semuaEmail', JSON.stringify(semuaEmail));
-    bukaDetailUser(selectedUser); // refresh halaman
-  }
-
-  function bukaDetailUser(userEmail) {
-    selectedUser = userEmail;
-    gantiHalaman('adminDetailUser', document.querySelector('#navAdmin.nav-item'));
-  }
-
-  function ubahStatusWithdraw(id, status) {
-    const wd = semuaWithdraw.find(w => w.id === id);
-    if(status === 'Ditolak') {
-      dataUser.saldo += wd.nominal;
-      localStorage.setItem('dataUser', JSON.stringify(dataUser));
-    }
-    wd.status = status;
-    localStorage.setItem('semuaWithdraw', JSON.stringify(semuaWithdraw));
-    gantiHalaman('adminWithdraw', document.querySelectorAll('#navAdmin.nav-item')[2]);
-  }
-
-  function aturSaldo() {
-    const tambah = parseInt(document.getElementById('inputTambahSaldo').value);
-    if(isNaN(tambah)) { alert('Isi nominal dulu'); return; }
-    dataUser.saldo += tambah;
-    localStorage.setItem('dataUser', JSON.stringify(dataUser));
-    alert('Saldo berhasil diubah!');
-    gantiHalaman('adminUser', document.querySelectorAll('#navAdmin.nav-item')[3]);
-  }
-
-  function simpanSetting() {
-    setting.harga = parseInt(document.getElementById('inputHarga').value);
-    setting.passwordAdmin = document.getElementById('inputPass').value;
-    localStorage.setItem('setting', JSON.stringify(setting));
-    alert('Setting disimpan!');
-  }
-
-  function gantiHalaman(halaman, el) {
-    document.querySelectorAll('.nav-item,.nav-center').forEach(item => item.classList.remove('active'));
-    if(el) el.classList.add('active');
-
-    const userEmail = semuaEmail.filter(e => e.user === dataUser.email);
-    const totalDiterima = userEmail.filter(e => e.status === 'Diterima').length;
-    const totalPending = userEmail.filter(e => e.status === 'Pending').length;
-    const totalDitolak = userEmail.filter(e => e.status === 'Ditolak').length;
-    let isi = '';
-
-    // USER PAGES
-    if(halaman == 'beranda') {
-      isi = `<div class="card-ungu"><div>Saldo Saat Ini</div><h1>Rp${dataUser.saldo.toLocaleString()}</h1><div style="background: rgba(255,255,255,0.2); padding: 10px; border-radius: 10px; margin-top: 10px;">Harga / Gmail: Rp${setting.harga.toLocaleString()}</div></div><div class="card"><h3>Generate Email Otomatis</h3><button class="btn" onclick="generateEmails()">+ Generate 100 Email</button><div style="margin-top:15px;">${emails.map(e => `<div class="email-item"><span>${e}</span><span class="badge belum">Belum Stor</span></div>`).join('')}</div>${emails.length > 0? `<button class="btn btn-outline" onclick="salinSemua()">📋 Salin Semua Gmail</button>` : ''}</div>`;
-    }
-    if(halaman == 'stor') {
-      isi = `<div class="card"><h3>Kirim Setoran</h3><label>No Dana Pencairan</label><input id="inputDana" class="input" type="text" value="${dataUser.dana}"><p style="font-size: 13px; margin: 10px 0;">Paste email. 1 baris = 1 email</p><textarea id="textareaSetoran" class="textarea"></textarea><button class="btn" onclick="kirimSetoran()">✈️ Kirim Setoran</button></div>`;
-    }
-    if(halaman == 'riwayat') {
-      let listEmail = semuaEmail.filter(e => e.user === dataUser.email);
-      isi = `<div class="card"><h3>Riwayat Email</h3>`;
-      if(listEmail.length === 0) { isi += `<p>Belum ada email</p>`; }
-      listEmail.forEach(e => {
-        isi += `<div class="email-item"><div><b>${e.email}</b><div style="font-size:12px;">${e.tanggalStor}</div></div><span class="badge ${e.status.toLowerCase()}">${e.status}</span></div>`;
-      });
-      isi += `</div>`;
-    }
-    if(halaman == 'saldo') {
-      isi = `<div class="card-ungu"><div>Saldo Saat Ini</div><h1>Rp${dataUser.saldo.toLocaleString()}</h1></div><div class="card"><h3>Request Withdraw</h3><div class="note">⚠️ Minimal Rp10.000 - Biaya Admin Rp1.000</div><label>Pilih Bank</label><select id="selectBank" class="select"><option value="">-- Pilih --</option><option>DANA</option><option>OVO</option><option>GOPAY</option><option>BCA</option></select><label>No Rek</label><input id="inputNoRek" class="input" value="${dataUser.noRek}"><label>Nominal</label><input id="inputNominal" class="input" type="number"><button class="btn" onclick="requestWithdraw()">💸 Ajukan Withdraw</button></div>`;
-    }
-    if(halaman == 'profil') {
-      isi = `<div class="card-ungu"><h2>Profil Saya</h2><p>${dataUser.email}</p></div>
-      <div class="card">
-        <h3>Informasi Akun</h3>
-        <div class="info-row"><div class="info-label">Email</div><div class="info-value">${dataUser.email}</div></div>
-        <div class="info-row"><div class="info-label">Login Via</div><div class="info-value">${dataUser.loginMethod}</div></div>
-        <div class="info-row"><div class="info-label">Device</div><div class="info-value" style="font-size:11px;">${dataUser.device.includes('Android')? 'Android' : dataUser.device.includes('iPhone')? 'iPhone' : 'Desktop'}</div></div>
-        <div class="info-row"><div class="info-label">No Dana</div><div class="info-value">${dataUser.dana || '-'}</div></div>
-        <div class="info-row"><div class="info-label">Total Diterima</div><div class="info-value">${totalDiterima} Email</div></div>
-        <div class="info-row"><div class="info-label">Total Pending</div><div class="info-value">${totalPending} Email</div></div>
-      </div>`;
-    }
-
-    // ADMIN PAGES
-    if(halaman == 'admin') {
-      const aD = semuaEmail.filter(e => e.status === 'Diterima').length;
-      const aP = semuaEmail.filter(e => e.status === 'Pending').length;
-      const aT = semuaEmail.filter(e => e.status === 'Ditolak').length;
-      isi = `<div class="card-ungu"><h2>Dashboard Admin</h2></div>
-      <div style="display:grid; grid-template-columns:1fr 1fr; gap:12px; margin:15px;">
-        <div class="card" style="margin:0;"><div style="color:#059669; font-size:12px;">DITERIMA</div><h2>${aD}</h2></div>
-        <div class="card" style="margin:0;"><div style="color:#d97706; font-size:12px;">PENDING</div><h2>${aP}</h2></div>
-        <div class="card" style="margin:0;"><div style="color:#dc2626; font-size:12px;">DITOLAK</div><h2>${aT}</h2></div>
-        <div class="card" style="margin:0;"><div style="color:#2563eb; font-size:12px;">HARGA</div><h2>Rp${setting.harga.toLocaleString()}</h2></div>
-      </div>`;
-    }
-    if(halaman == 'adminSetoran') {
-      // KELOMPOKIN PER USER
-      const users = [...new Set(semuaEmail.map(e => e.user))];
-      isi = `<div class="card"><h3>Rekap Setoran Per User</h3>`;
-      if(users.length === 0) { isi += `<p>Belum ada setoran</p>`; }
-      users.forEach(user => {
-        const userEmails = semuaEmail.filter(e => e.user === user);
-        const pending = userEmails.filter(e => e.status === 'Pending').length;
-        const total = userEmails.length;
-        isi += `<div class="user-card" onclick="bukaDetailUser('${user}')">
-          <div style="display:flex; justify-content:space-between; align-items:center;">
-            <div>
-              <b>${user}</b>
-              <div style="font-size:12px; color:#6b7280;">Total: ${total} | Pending: ${pending}</div>
-            </div>
-            <div style="font-size:20px;">></div>
-          </div>
-        </div>`;
-      });
-      isi += `</div>`;
-    }
-    if(halaman == 'adminDetailUser') {
-      const userEmails = semuaEmail.filter(e => e.user === selectedUser);
-      isi = `<div class="card"><button class="btn btn-abu" onclick="gantiHalaman('adminSetoran', document.querySelectorAll('#navAdmin.nav-item')[1])">← Kembali</button><h3 style="margin-top:10px;">${selectedUser}</h3><p style="color:#6b7280; font-size:13px;">${userEmails.length} Email</p></div>
-      <div class="card"><h3>Daftar Email</h3>`;
-      userEmails.forEach(e => {
-        isi += `<div class="email-item">
-          <div><b>${e.email}</b><div style="font-size:12px;">${e.tanggalStor}</div></div>
-          <div style="display:flex; gap:5px;">
-            ${e.status==='Pending'?`<button class="btn btn-hijau" style="padding:5px 10px; width:auto;" onclick="ubahStatusEmail(${e.id},'Diterima')">✓</button><button class="btn btn-merah" style="padding:5px 10px; width:auto;" onclick="ubahStatusEmail(${e.id},'Ditolak')">✗</button>`: `<span class="badge ${e.status.toLowerCase()}">${e.status}</span>`}
-          </div>
-        </div>`;
-      });
-      isi += `</div>`;
-    }
-    if(halaman == 'adminWithdraw') {
-      isi = `<div class="card"><h3>Rekap Withdraw</h3>`;
-      semuaWithdraw.forEach(w => {
-        isi += `<div class="email-item"><div><b>${w.user}</b><div>${w.bank} - ${w.noRek}</div><div>Rp${w.nominal.toLocaleString()} → Rp${w.diterima.toLocaleString()}</div></div><div style="display:flex; gap:5px;"><span class="badge ${w.status.toLowerCase()}">${w.status}</span>${w.status==='Pending'?`<button class="btn btn-hijau" style="padding:5px 10px; width:auto;" onclick="ubahStatusWithdraw(${w.id},'Diterima')">Bayar</button><button class="btn btn-merah" style="padding:5px 10px; width:auto;" onclick="ubahStatusWithdraw(${w.id},'Ditolak')">Tolak</button>`:''}</div></div>`;
-      });
-      isi += `</div>`;
-    }
-    if(halaman == 'adminUser') {
-      isi = `<div class="card"><h3>Atur Saldo User</h3><p>Saldo: Rp${dataUser.saldo.toLocaleString()}</p><input id="inputTambahSaldo" class="input" type="number" placeholder="50000 atau -10000"><button class="btn btn-kuning" onclick="aturSaldo()">Update Saldo</button></div>`;
-    }
-    if(halaman == 'adminSetting') {
-      isi = `<div class="card"><h3>Setting</h3><label>Harga per Email</label><input id="inputHarga" class="input" type="number" value="${setting.harga}"><label>Password Admin</label><input id="inputPass" class="input" value="${setting.passwordAdmin}"><button class="btn" onclick="simpanSetting()">Simpan</button></div>`;
-    }
-    document.getElementById('halaman').innerHTML = isi;
-  }
-
-  gantiHalaman('beranda', document.querySelector('.nav-item'));
 </script>
+</head>
+<body class="bg-gray-100 p-4">
+  <div class="max-w-4xl mx-auto bg-white p-6 rounded-xl shadow">
+    <h1 class="text-2xl font-bold mb-4">📒 Catatan Setoran Harian</h1>
+    
+    <div class="grid grid-cols-1 md:grid-cols-4 gap-2 mb-4">
+      <input id="tanggal" type="date" class="border p-2 rounded">
+      <input id="nama" type="text" placeholder="Nama" class="border p-2 rounded">
+      <input id="nominal" type="number" placeholder="Nominal" class="border p-2 rounded">
+      <input id="keterangan" type="text" placeholder="Keterangan" class="border p-2 rounded">
+    </div>
+    <button onclick="tambahSetoran()" class="bg-blue-500 text-white px-4 py-2 rounded mb-4">Tambah Setoran</button>
+    
+    <h2 id="total" class="text-xl font-semibold mb-2">Total: Rp 0</h2>
+    <div class="overflow-x-auto">
+      <table class="w-full text-sm">
+        <thead class="bg-gray-200">
+          <tr><th class="p-2">Tanggal</th><th class="p-2">Nama</th><th class="p-2">Nominal</th><th class="p-2">Keterangan</th><th class="p-2">Aksi</th></tr>
+        </thead>
+        <tbody id="tbody"></tbody>
+      </table>
+    </div>
+  </div>
 </body>
 </html>
