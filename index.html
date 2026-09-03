@@ -3,54 +3,150 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>GMAIL HUB SYAHDAN</title>
+  <title>GMAIL HUB</title>
   <style>
-    body { background: #f3e8ff; font-family: 'Poppins',Arial; padding: 20px; margin: 0; }
-    .box { max-width: 500px; margin: 0 auto; background: white; padding: 25px; border-radius: 12px; }
-    .logo h1 { color: #9c27b0; text-align: center; }
-    .password { background: #fefce8; padding: 10px; border-radius: 8px; border-left: 4px solid #facc15; margin-bottom: 20px; }
-    .generate-btn { background: #9333ea; color: white; width: 100%; padding: 15px; border: none; border-radius: 8px; cursor: pointer; font-weight: bold; margin-bottom: 15px; }
-    .gmail-card { background: #faf5ff; padding: 12px; border-radius: 8px; margin-bottom: 8px; display: flex; justify-content: space-between; }
-    .badge.belum { background: #ffecb3; color: #ff6f00; padding: 5px 10px; border-radius: 20px; font-size: 12px; }
-    .salin-btn { background: #9333ea; color: white; width: 100%; padding: 15px; border: none; border-radius: 8px; cursor: pointer; font-weight: bold; margin-top: 15px; display: none; }
+    * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Poppins', Arial; }
+    body { background: #f5f3ff; padding-bottom: 80px; }
+    .header { background: white; padding: 15px 20px; display: flex; justify-content: space-between; align-items: center; }
+    .logo { display: flex; align-items: center; gap: 8px; font-weight: bold; font-size: 18px; }
+    .logo span { color: #9333ea; }
+    .card { background: white; margin: 15px; padding: 20px; border-radius: 16px; }
+    .card-ungu { background: linear-gradient(135deg, #9333ea, #7e22ce); color: white; border-radius: 16px; padding: 20px; margin: 15px; }
+    .btn { background: #9333ea; color: white; width: 100%; padding: 12px; border: none; border-radius: 10px; font-weight: bold; cursor: pointer; }
+    .btn-outline { background: white; color: #9333ea; border: 1px solid #e9d5ff; }
+    .email-item { background: #faf5ff; padding: 12px; border-radius: 10px; margin-bottom: 10px; display: flex; justify-content: space-between; align-items: center; }
+    .badge { padding: 4px 10px; border-radius: 20px; font-size: 12px; font-weight: 600; }
+    .badge.belum { background: #fef3c7; color: #d97706; }
+    .badge.pending { background: #dbeafe; color: #2563eb; }
+    .textarea { width: 100%; height: 150px; border: 1px solid #e9d5ff; border-radius: 10px; padding: 10px; margin: 10px 0; }
+    .nav-bottom { position: fixed; bottom: 0; left: 0; right: 0; background: white; display: flex; justify-content: space-around; padding: 10px 0; border-top: 1px solid #e9d5ff; }
+    .nav-item { text-align: center; font-size: 12px; color: #6b7280; cursor: pointer; }
+    .nav-item.active { color: #9333ea; }
+    .nav-center { background: #9333ea; width: 55px; height: 55px; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin-top: -15px; color: white; font-size: 22px; }
   </style>
 </head>
 <body>
-  <div class="box">
-    <div class="logo"><h1>GMAIL HUB SYAHDAN</h1></div>
-    <div class="password"><b>Password Wajib:</b> sgsg1122</div>
-    <h3>Generate Email Otomatis</h3>
-    <button class="generate-btn" onclick="generateEmails()">+ Generate 100 Email</button>
-    <div id="listEmail"></div>
-    <button class="salin-btn" id="btnSalin" onclick="salinSemua()">Salin Semua</button>
+
+  <div class="header">
+    <div class="logo">📧 <span>GMAIL</span>HUB</div>
+    <div style="background: #faf5ff; padding: 6px 12px; border-radius: 20px; color: #9333ea;">Saluran WA</div>
   </div>
+
+  <div id="halaman"></div>
+
+  <div class="nav-bottom">
+    <div class="nav-item active" onclick="gantiHalaman('beranda')">🏠<br>Beranda</div>
+    <div class="nav-item" onclick="gantiHalaman('riwayat')">🕒<br>Riwayat</div>
+    <div class="nav-center" onclick="gantiHalaman('stor')">✈️</div>
+    <div class="nav-item" onclick="gantiHalaman('saldo')">💳<br>Saldo</div>
+    <div class="nav-item" onclick="gantiHalaman('profil')">👤<br>Profil</div>
+  </div>
+
 <script>
   let emails = [];
-  const namaDepan = ['budi','andi','joko','agus','dedi','eko','rizki','ahmad','fajar','hadi','siti','ani','dewi','rini','yuni','lisa','dina','maya','nita','sari','agung','bayu','dimas','galih','ilham','krisna','putra','surya','wawan','yoga'];
-  const namaBelakang = ['saputra','wijaya','pratama','setiawan','santoso','nugroho','prakoso','ramadhan','lestari','wati','ayu','indah','putri','sari','melati','anggraini','rahmawati','hidayat','firmansyah','kurniawan','gunawan','sukma','permata','utami'];
+  let riwayat = JSON.parse(localStorage.getItem('riwayat')) || [];
+  const namaDepan = ['budi','andi','joko','agus','dedi','eko','rizki','ahmad','fajar','hadi','siti','ani','dewi','rini','yuni','lisa','dina','maya','nita','sari'];
+  const namaBelakang = ['saputra','wijaya','pratama','setiawan','santoso','nugroho','prakoso','ramadhan','lestari','wati','ayu','indah','putri'];
+
   function generateRandomEmail() {
     const depan = namaDepan[Math.floor(Math.random() * namaDepan.length)];
     const belakang = namaBelakang[Math.floor(Math.random() * namaBelakang.length)];
     const angka = Math.floor(Math.random() * 100);
     return `${depan}${belakang}${angka}@gmail.com`;
   }
+
   function generateEmails() {
     emails = [];
     for(let i = 0; i < 100; i++) { emails.push(generateRandomEmail()); }
-    tampilkanEmail();
+    gantiHalaman('beranda');
   }
-  function tampilkanEmail() {
-    const list = document.getElementById('listEmail');
-    list.innerHTML = '';
-    emails.forEach(email => {
-      list.innerHTML += `<div class="gmail-card"><span>${email}</span><span class="badge belum">Belum Stor</span></div>`;
-    });
-    document.getElementById('btnSalin').style.display = 'block';
-  }
+
   function salinSemua() {
     navigator.clipboard.writeText(emails.join('\n'));
     alert('100 Email berhasil disalin!');
   }
+
+  function kirimSetoran() {
+    const textarea = document.getElementById('textareaSetoran');
+    const listEmail = textarea.value.split('\n').filter(e => e.includes('@gmail.com'));
+    if(listEmail.length === 0) { alert('Isi email dulu bang!'); return; }
+    
+    const dataBaru = {
+      tanggal: new Date().toLocaleString('id-ID'),
+      jumlah: listEmail.length,
+      status: 'Pending',
+      emails: listEmail
+    };
+    riwayat.unshift(dataBaru);
+    localStorage.setItem('riwayat', JSON.stringify(riwayat));
+    textarea.value = '';
+    alert(`Berhasil kirim ${listEmail.length} email! Menunggu verifikasi 24-30 jam`);
+    gantiHalaman('riwayat');
+  }
+
+  function gantiHalaman(halaman) {
+    document.querySelectorAll('.nav-item').forEach(el => el.classList.remove('active'));
+    event.target.closest('.nav-item').classList.add('active');
+    
+    let isi = '';
+    if(halaman == 'beranda') {
+      isi = `
+      <div class="card-ungu">
+        <div>Saldo Saat Ini</div>
+        <h1>Rp0</h1>
+        <div style="background: rgba(255,255,255,0.2); padding: 10px; border-radius: 10px; margin-top: 10px; font-size: 13px;">Harga / Gmail: Rp3.500</div>
+      </div>
+      <div class="card">
+        <h3>Generate Email Otomatis</h3>
+        <button class="btn" onclick="generateEmails()">+ Generate 100 Email</button>
+        <div style="margin-top:15px;">
+          ${emails.map(e => `<div class="email-item"><span>${e}</span><span class="badge belum">Belum Stor</span></div>`).join('')}
+        </div>
+        ${emails.length > 0 ? `<button class="btn btn-outline" onclick="salinSemua()">📋 Salin Semua Gmail</button>` : ''}
+      </div>`;
+    }
+    if(halaman == 'stor') {
+      isi = `
+      <div class="card">
+        <h3>Kirim Setoran</h3>
+        <p style="font-size: 13px; color: #6b7280; margin: 10px 0;">Paste email yang mau disetor di bawah. 1 baris = 1 email</p>
+        <textarea id="textareaSetoran" class="textarea" placeholder="contoh1@gmail.com&#10;contoh2@gmail.com"></textarea>
+        <button class="btn" onclick="kirimSetoran()">✈️ Kirim Setoran</button>
+        <p style="font-size: 12px; color: #6b7280; margin-top: 10px;">Estimasi pengecekan 24-30 jam.</p>
+      </div>`;
+    }
+    if(halaman == 'riwayat') {
+      isi = `<div class="card"><h3>Riwayat Setoran</h3>`;
+      if(riwayat.length === 0) { isi += `<p>Belum ada riwayat</p>`; }
+      riwayat.forEach(r => {
+        isi += `
+        <div class="email-item">
+          <div>
+            <div><b>${r.tanggal}</b></div>
+            <div style="font-size: 13px;">${r.jumlah} Email</div>
+          </div>
+          <span class="badge pending">${r.status}</span>
+        </div>`;
+      });
+      isi += `</div>`;
+    }
+    if(halaman == 'saldo') {
+      isi = `<div class="card-ungu"><div>Saldo Saat Ini</div><h1>Rp0</h1></div>`;
+    }
+    if(halaman == 'profil') {
+      isi = `
+      <div class="card-ungu" style="text-align:center;">
+        <h2>Profil Saya</h2>
+        <p>syahdan@gmail.com</p>
+      </div>
+      <div class="card">
+        <div style="margin-bottom:10px;"><b>ROLE</b><br>User</div>
+        <div><b>PASSWORD</b><br>sgsg1122</div>
+      </div>`;
+    }
+    document.getElementById('halaman').innerHTML = isi;
+  }
+  gantiHalaman('beranda');
 </script>
 </body>
 </html>
