@@ -7,22 +7,22 @@
   <style>
     * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Poppins', Arial; }
     body { background: #f5f3ff; padding-bottom: 80px; }
-    .header { background: white; padding: 15px 20px; display: flex; justify-content: space-between; align-items: center; }
-    .logo { display: flex; align-items: center; gap: 8px; font-weight: bold; font-size: 18px; }
-    .logo span { color: #9333ea; }
-    .card { background: white; margin: 15px; padding: 20px; border-radius: 16px; }
-    .card-ungu { background: linear-gradient(135deg, #9333ea, #7e22ce); color: white; border-radius: 16px; padding: 20px; margin: 15px; }
-    .btn { background: #9333ea; color: white; width: 100%; padding: 12px; border: none; border-radius: 10px; font-weight: bold; cursor: pointer; }
-    .btn-outline { background: white; color: #9333ea; border: 1px solid #e9d5ff; }
-    .email-item { background: #faf5ff; padding: 12px; border-radius: 10px; margin-bottom: 10px; display: flex; justify-content: space-between; align-items: center; }
-    .badge { padding: 4px 10px; border-radius: 20px; font-size: 12px; font-weight: 600; }
-    .badge.belum { background: #fef3c7; color: #d97706; }
-    .badge.pending { background: #dbeafe; color: #2563eb; }
-    .textarea { width: 100%; height: 150px; border: 1px solid #e9d5ff; border-radius: 10px; padding: 10px; margin: 10px 0; }
-    .nav-bottom { position: fixed; bottom: 0; left: 0; right: 0; background: white; display: flex; justify-content: space-around; padding: 10px 0; border-top: 1px solid #e9d5ff; }
-    .nav-item { text-align: center; font-size: 12px; color: #6b7280; cursor: pointer; }
-    .nav-item.active { color: #9333ea; }
-    .nav-center { background: #9333ea; width: 55px; height: 55px; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin-top: -15px; color: white; font-size: 22px; }
+   .header { background: white; padding: 15px 20px; display: flex; justify-content: space-between; align-items: center; }
+   .logo { display: flex; align-items: center; gap: 8px; font-weight: bold; font-size: 18px; }
+   .logo span { color: #9333ea; }
+   .card { background: white; margin: 15px; padding: 20px; border-radius: 16px; }
+   .card-ungu { background: linear-gradient(135deg, #9333ea, #7e22ce); color: white; border-radius: 16px; padding: 20px; margin: 15px; }
+   .btn { background: #9333ea; color: white; width: 100%; padding: 12px; border: none; border-radius: 10px; font-weight: bold; cursor: pointer; }
+   .btn-outline { background: white; color: #9333ea; border: 1px solid #e9d5ff; }
+   .email-item { background: #faf5ff; padding: 12px; border-radius: 10px; margin-bottom: 10px; display: flex; justify-content: space-between; align-items: center; }
+   .badge { padding: 4px 10px; border-radius: 20px; font-size: 12px; font-weight: 600; }
+   .badge.belum { background: #fef3c7; color: #d97706; }
+   .badge.pending { background: #dbeafe; color: #2563eb; }
+   .textarea { width: 100%; height: 150px; border: 1px solid #e9d5ff; border-radius: 10px; padding: 10px; margin: 10px 0; }
+   .nav-bottom { position: fixed; bottom: 0; left: 0; right: 0; background: white; display: flex; justify-content: space-around; padding: 10px 0; border-top: 1px solid #e9d5ff; }
+   .nav-item { text-align: center; font-size: 12px; color: #6b7280; cursor: pointer; }
+   .nav-item.active { color: #9333ea; font-weight: bold; }
+   .nav-center { background: #9333ea; width: 55px; height: 55px; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin-top: -15px; color: white; font-size: 22px; cursor: pointer; }
   </style>
 </head>
 <body>
@@ -58,7 +58,7 @@
   function generateEmails() {
     emails = [];
     for(let i = 0; i < 100; i++) { emails.push(generateRandomEmail()); }
-    gantiHalaman('beranda');
+    gantiHalaman('beranda', document.querySelector('.nav-item'));
   }
 
   function salinSemua() {
@@ -81,11 +81,11 @@
     localStorage.setItem('riwayat', JSON.stringify(riwayat));
     textarea.value = '';
     alert(`Berhasil kirim ${listEmail.length} email! Menunggu verifikasi 24-30 jam`);
-    gantiHalaman('riwayat');
+    gantiHalaman('riwayat', document.querySelectorAll('.nav-item')[1]);
   }
 
   function gantiHalaman(halaman, el) {
-    document.querySelectorAll('.nav-item, .nav-center').forEach(item => item.classList.remove('active'));
+    document.querySelectorAll('.nav-item,.nav-center').forEach(item => item.classList.remove('active'));
     el.classList.add('active');
     
     let isi = '';
@@ -102,14 +102,14 @@
         <div style="margin-top:15px;">
           ${emails.map(e => `<div class="email-item"><span>${e}</span><span class="badge belum">Belum Stor</span></div>`).join('')}
         </div>
-        ${emails.length > 0 ? `<button class="btn btn-outline" onclick="salinSemua()">📋 Salin Semua Gmail</button>` : ''}
+        ${emails.length > 0? `<button class="btn btn-outline" onclick="salinSemua()">📋 Salin Semua Gmail</button>` : ''}
       </div>`;
     }
     if(halaman == 'stor') {
       isi = `
       <div class="card">
         <h3>Kirim Setoran</h3>
-        <p style="font-size: 13px; color: #6b7280; margin: 10px 0;">Paste email yang mau disetor di bawah. 1 baris = 1 email</p>
+        <p style="font-size: 13px; color: #6b7280; margin: 10px 0;">Paste email yang mau disetor. 1 baris = 1 email</p>
         <textarea id="textareaSetoran" class="textarea" placeholder="contoh1@gmail.com&#10;contoh2@gmail.com"></textarea>
         <button class="btn" onclick="kirimSetoran()">✈️ Kirim Setoran</button>
         <p style="font-size: 12px; color: #6b7280; margin-top: 10px;">Estimasi pengecekan 24-30 jam.</p>
@@ -146,7 +146,7 @@
     }
     document.getElementById('halaman').innerHTML = isi;
   }
-  gantiHalaman('beranda');
+  gantiHalaman('beranda', document.querySelector('.nav-item'));
 </script>
 </body>
 </html>
