@@ -18,13 +18,12 @@
 .btn-merah { background: #ef4444; }
 .btn-kuning { background: #f59e0b; }
 .btn-abu { background: #6b7280; }
-.email-item { background: #faf5ff; padding: 12px; border-radius: 10px; margin-bottom: 10px; cursor: pointer; }
+.email-item { background: #faf5ff; padding: 12px; border-radius: 10px; margin-bottom: 10px; }
 .badge { padding: 4px 10px; border-radius: 20px; font-size: 12px; font-weight: 600; }
 .badge.belum { background: #fef3c7; color: #d97706; }
 .badge.pending { background: #dbeafe; color: #2563eb; }
 .badge.diterima { background: #d1fae5; color: #059669; }
 .badge.ditolak { background: #fee2e2; color: #dc2626; }
-.badge.tutup { background: #fee2e2; color: #dc2626; }
 .textarea { width: 100%; height: 150px; border: 1px solid #e9d5ff; border-radius: 10px; padding: 10px; margin: 10px 0; }
 .nav-bottom { position: fixed; bottom: 0; left: 0; right: 0; background: white; display: flex; justify-content: space-around; padding: 10px 0; border-top: 1px solid #e9d5ff; }
 .nav-item { text-align: center; font-size: 12px; color: #6b7280; cursor: pointer; }
@@ -32,7 +31,13 @@
 .nav-center { background: #9333ea; width: 55px; height: 55px; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin-top: -15px; color: white; font-size: 22px; cursor: pointer; }
 .nav-center.off { background: #9ca3af; }
 .input { width: 100%; padding: 10px; border: 1px solid #e9d5ff; border-radius: 10px; margin: 10px 0; }
-.detail-box { background: #f9fafb; padding: 10px; border-radius: 8px; margin-top: 10px; font-size: 12px; max-height: 200px; overflow-y: auto; }
+.select { width: 100%; padding: 10px; border: 1px solid #e9d5ff; border-radius: 10px; margin: 10px 0; background: white; }
+.note { background: #fef3c7; color: #92400e; padding: 10px; border-radius: 8px; font-size: 12px; margin: 10px 0; }
+.filter { display: flex; gap: 8px; overflow-x: auto; margin: 10px 0; }
+.filter-btn { padding: 6px 12px; border-radius: 20px; background: white; border: 1px solid #e9d5ff; font-size: 12px; cursor: pointer; white-space: nowrap; }
+.filter-btn.active { background: #9333ea; color: white; border: none; }
+.search { width: 100%; padding: 10px; border: 1px solid #e9d5ff; border-radius: 10px; margin-bottom: 10px; }
+.alasan { background: #fee2e2; color: #dc2626; padding: 8px; border-radius: 8px; font-size: 12px; margin-top: 5px; }
   </style>
 </head>
 <body>
@@ -55,6 +60,7 @@
   <div id="navAdmin" class="nav-bottom" style="display:none;">
     <div class="nav-item active" onclick="gantiHalaman('admin', this)">📊<br>Dashboard</div>
     <div class="nav-item" onclick="gantiHalaman('adminSetoran', this)">📥<br>Setoran</div>
+    <div class="nav-item" onclick="gantiHalaman('adminWithdraw', this)">💸<br>Withdraw</div>
     <div class="nav-item" onclick="gantiHalaman('adminUser', this)">👥<br>User</div>
     <div class="nav-item" onclick="gantiHalaman('adminSetting', this)">⚙️<br>Setting</div>
     <div class="nav-item" onclick="logoutAdmin()">🚪<br>Keluar</div>
@@ -63,10 +69,12 @@
 <script>
   let isAdmin = false;
   let emails = [];
-  let dataUser = JSON.parse(localStorage.getItem('dataUser')) || {saldo: 0, email: 'user@gmail.com', dana: ''};
-  let semuaSetoran = JSON.parse(localStorage.getItem('semuaSetoran')) || [];
-  let semuaUser = JSON.parse(localStorage.getItem('semuaUser')) || [dataUser];
+  let dataUser = JSON.parse(localStorage.getItem('dataUser')) || {saldo: 50000, email: 'user@gmail.com', dana: '', bank: '', noRek: ''};
+  let semuaEmail = JSON.parse(localStorage.getItem('semuaEmail')) || []; // simpen per email
+  let semuaWithdraw = JSON.parse(localStorage.getItem('semuaWithdraw')) || [];
   let setting = JSON.parse(localStorage.getItem('setting')) || {harga: 3500, passwordAdmin: 'admin123', storBuka: true, generateBuka: true};
+  let filterStatus = 'Semua';
+  let filterWaktu = 'Semua';
   const namaDepan = ['budi','andi','joko','agus','dedi']; const namaBelakang = ['saputra','wijaya','pratama','setiawan'];
 
   function generateRandomEmail() {
@@ -96,73 +104,86 @@
     dataUser.dana = dana;
     localStorage.setItem('dataUser', JSON.stringify(dataUser));
 
-    const dataBaru = {id: Date.now(), user: dataUser.email, dana: dana, tanggal: new Date().toLocaleString('id-ID'), jumlah: listEmail.length, status: 'Pending', emails: listEmail};
-    semuaSetoran.unshift(dataBaru);
-    localStorage.setItem('semuaSetoran', JSON.stringify(semuaSetoran));
+    // simpan per email
+    listEmail.forEach(email => {
+      semuaEmail.unshift({
+        id: Date.now() + Math.random(),
+        user: dataUser.email,
+        email: email,
+        dana: dana,
+        tanggalStor: new Date().toLocaleString('id-ID'),
+        tanggalVerifikasi: '-',
+        status: 'Pending',
+        alasan: ''
+      });
+    });
+    localStorage.setItem('semuaEmail', JSON.stringify(semuaEmail));
     textarea.value = '';
     alert(`Berhasil kirim ${listEmail.length} email! Menunggu verifikasi`);
     gantiHalaman('riwayat', document.querySelectorAll('#navUser.nav-item')[1]);
+  }
+
+  function requestWithdraw() {
+    const bank = document.getElementById('selectBank').value;
+    const noRek = document.getElementById('inputNoRek').value;
+    const nominal = parseInt(document.getElementById('inputNominal').value);
+    if(bank === '' || noRek === '' || isNaN(nominal)) { alert('Lengkapi semua data!'); return; }
+    if(nominal < 10000) { alert('Minimal withdraw Rp10.000'); return; }
+    if(nominal > dataUser.saldo) { alert('Saldo tidak cukup!'); return; }
+    const biayaAdmin = 1000; const diterima = nominal - biayaAdmin;
+    dataUser.bank = bank; dataUser.noRek = noRek; localStorage.setItem('dataUser', JSON.stringify(dataUser));
+    semuaWithdraw.unshift({id: Date.now(), user: dataUser.email, bank: bank, noRek: noRek, nominal: nominal, biaya: biayaAdmin, diterima: diterima, tanggal: new Date().toLocaleString('id-ID'), status: 'Pending'});
+    localStorage.setItem('semuaWithdraw', JSON.stringify(semuaWithdraw));
+    dataUser.saldo -= nominal; localStorage.setItem('dataUser', JSON.stringify(dataUser));
+    alert(`Withdraw Rp${nominal.toLocaleString()} berhasil diajukan!\nDana diterima: Rp${diterima.toLocaleString()}`);
+    gantiHalaman('saldo', document.querySelectorAll('#navUser.nav-item')[3]);
   }
 
   // FITUR ADMIN
   function loginAdmin() {
     const pass = prompt('Masukkan Password Admin:');
     if(pass === setting.passwordAdmin) {
-      isAdmin = true;
-      document.getElementById('navUser').style.display = 'none';
-      document.getElementById('navAdmin').style.display = 'flex';
-      document.getElementById('adminBtn').innerText = 'Admin Aktif';
+      isAdmin = true; document.getElementById('navUser').style.display = 'none';
+      document.getElementById('navAdmin').style.display = 'flex'; document.getElementById('adminBtn').innerText = 'Admin Aktif';
       gantiHalaman('admin', document.querySelector('#navAdmin.nav-item'));
     } else { alert('Password Salah!'); }
   }
-
   function logoutAdmin() {
-    isAdmin = false;
-    document.getElementById('navUser').style.display = 'flex';
-    document.getElementById('navAdmin').style.display = 'none';
-    document.getElementById('adminBtn').innerText = 'Admin';
+    isAdmin = false; document.getElementById('navUser').style.display = 'flex';
+    document.getElementById('navAdmin').style.display = 'none'; document.getElementById('adminBtn').innerText = 'Admin';
     gantiHalaman('beranda', document.querySelector('#navUser.nav-item'));
   }
 
-  function toggleStor() {
-    setting.storBuka =!setting.storBuka;
-    localStorage.setItem('setting', JSON.stringify(setting));
-    alert(setting.storBuka? 'Setoran Dibuka' : 'Setoran Ditutup');
-    gantiHalaman('admin', document.querySelector('#navAdmin.nav-item'));
-  }
-
-  function toggleGenerate() {
-    setting.generateBuka =!setting.generateBuka;
-    localStorage.setItem('setting', JSON.stringify(setting));
-    alert(setting.generateBuka? 'Generate Dibuka' : 'Generate Ditutup');
-    gantiHalaman('admin', document.querySelector('#navAdmin.nav-item'));
-  }
-
-  function ubahStatus(id, status) {
-    const setoran = semuaSetoran.find(s => s.id === id);
-    if(status === 'Diterima' && setoran.status === 'Pending') {
-      const tambahSaldo = setoran.jumlah * setting.harga;
-      dataUser.saldo += tambahSaldo;
+  function ubahStatusEmail(id, status) {
+    const email = semuaEmail.find(e => e.id === id);
+    if(status === 'Diterima' && email.status === 'Pending') {
+      dataUser.saldo += setting.harga;
       localStorage.setItem('dataUser', JSON.stringify(dataUser));
-      alert(`Saldo +Rp${tambahSaldo.toLocaleString()}`);
+      email.tanggalVerifikasi = new Date().toLocaleString('id-ID');
     }
-    setoran.status = status;
-    localStorage.setItem('semuaSetoran', JSON.stringify(semuaSetoran));
+    if(status === 'Ditolak') {
+      const alasan = prompt('Alasan penolakan:');
+      email.alasan = alasan || 'Tidak valid';
+      email.tanggalVerifikasi = new Date().toLocaleString('id-ID');
+    }
+    email.status = status;
+    localStorage.setItem('semuaEmail', JSON.stringify(semuaEmail));
     gantiHalaman('adminSetoran', document.querySelectorAll('#navAdmin.nav-item')[1]);
   }
 
-  function toggleDetail(id) {
-    const box = document.getElementById('detail-' + id);
-    box.style.display = box.style.display === 'none'? 'block' : 'none';
+  function ubahStatusWithdraw(id, status) {
+    const wd = semuaWithdraw.find(w => w.id === id);
+    if(status === 'Ditolak') { dataUser.saldo += wd.nominal; localStorage.setItem('dataUser', JSON.stringify(dataUser)); }
+    wd.status = status; localStorage.setItem('semuaWithdraw', JSON.stringify(semuaWithdraw));
+    gantiHalaman('adminWithdraw', document.querySelectorAll('#navAdmin.nav-item')[2]);
   }
 
   function aturSaldo() {
     const tambah = parseInt(document.getElementById('inputTambahSaldo').value);
     if(isNaN(tambah)) { alert('Isi nominal dulu'); return; }
-    dataUser.saldo += tambah;
-    localStorage.setItem('dataUser', JSON.stringify(dataUser));
+    dataUser.saldo += tambah; localStorage.setItem('dataUser', JSON.stringify(dataUser));
     alert('Saldo berhasil diubah!');
-    gantiHalaman('adminUser', document.querySelectorAll('#navAdmin.nav-item')[2]);
+    gantiHalaman('adminUser', document.querySelectorAll('#navAdmin.nav-item')[3]);
   }
 
   function simpanSetting() {
@@ -172,12 +193,10 @@
     alert('Setting disimpan!');
   }
 
-  function updateTombolStor() {
-    const btn = document.getElementById('btnStor');
-    if(btn) {
-      if(!setting.storBuka) { btn.classList.add('off'); }
-      else { btn.classList.remove('off'); }
-    }
+  function setFilter(status, waktu) {
+    if(status) filterStatus = status;
+    if(waktu) filterWaktu = waktu;
+    gantiHalaman('riwayat', document.querySelectorAll('#navUser.nav-item')[1]);
   }
 
   function gantiHalaman(halaman, el) {
@@ -187,54 +206,84 @@
 
     // HALAMAN USER
     if(halaman == 'beranda') {
-      const statusGenerate = setting.generateBuka? '' : '<p style="color:red; text-align:center;">Generate sedang ditutup</p>';
-      isi = `<div class="card-ungu"><div>Saldo Saat Ini</div><h1>Rp${dataUser.saldo.toLocaleString()}</h1><div style="background: rgba(255,255,255,0.2); padding: 10px; border-radius: 10px; margin-top: 10px; font-size: 13px;">Harga / Gmail: Rp${setting.harga.toLocaleString()}</div></div><div class="card"><h3>Generate Email Otomatis</h3>${statusGenerate}<button class="btn" onclick="generateEmails()" ${!setting.generateBuka? 'disabled style="background:#9ca3af;"' : ''}>+ Generate 100 Email</button><div style="margin-top:15px;">${emails.map(e => `<div class="email-item" style="cursor:default;"><span>${e}</span><span class="badge belum">Belum Stor</span></div>`).join('')}</div>${emails.length > 0? `<button class="btn btn-outline" onclick="salinSemua()">📋 Salin Semua Gmail</button>` : ''}</div>`;
+      isi = `<div class="card-ungu"><div>Saldo Saat Ini</div><h1>Rp${dataUser.saldo.toLocaleString()}</h1><div style="background: rgba(255,255,255,0.2); padding: 10px; border-radius: 10px; margin-top: 10px; font-size: 13px;">Harga / Gmail: Rp${setting.harga.toLocaleString()}</div></div><div class="card"><h3>Generate Email Otomatis</h3><button class="btn" onclick="generateEmails()">+ Generate 100 Email</button><div style="margin-top:15px;">${emails.map(e => `<div class="email-item"><span>${e}</span><span class="badge belum">Belum Stor</span></div>`).join('')}</div>${emails.length > 0? `<button class="btn btn-outline" onclick="salinSemua()">📋 Salin Semua Gmail</button>` : ''}</div>`;
     }
     if(halaman == 'stor') {
-      if(!setting.storBuka &&!isAdmin) { isi = `<div class="card"><h3>⚠️ Setoran Ditutup</h3><p>Silahkan hubungi admin</p></div>`; }
-      else {
-        isi = `<div class="card"><h3>Kirim Setoran</h3><label>No Dana Pencairan</label><input id="inputDana" class="input" type="text" placeholder="08xxxxxx" value="${dataUser.dana}"><p style="font-size: 13px; color: #6b7280; margin: 10px 0;">Paste email yang mau disetor. 1 baris = 1 email</p><textarea id="textareaSetoran" class="textarea"></textarea><button class="btn" onclick="kirimSetoran()">✈️ Kirim Setoran</button></div>`;
-      }
+      isi = `<div class="card"><h3>Kirim Setoran</h3><label>No Dana Pencairan</label><input id="inputDana" class="input" type="text" placeholder="08xxxxxx" value="${dataUser.dana}"><p style="font-size: 13px; color: #6b7280; margin: 10px 0;">Paste email yang mau disetor. 1 baris = 1 email</p><textarea id="textareaSetoran" class="textarea"></textarea><button class="btn" onclick="kirimSetoran()">✈️ Kirim Setoran</button></div>`;
     }
     if(halaman == 'riwayat') {
-      isi = `<div class="card"><h3>Riwayat Setoran Kamu</h3>`;
-      const riwayatUser = semuaSetoran.filter(s => s.user === dataUser.email);
-      if(riwayatUser.length === 0) { isi += `<p>Belum ada riwayat</p>`; }
-      riwayatUser.forEach(r => {
-        isi += `<div class="email-item" onclick="toggleDetail(${r.id})"><div><b>${r.tanggal}</b><div style="font-size: 13px;">${r.jumlah} Email - Dana: ${r.dana}</div></div><span class="badge ${r.status.toLowerCase()}">${r.status}</span><div id="detail-${r.id}" class="detail-box" style="display:none;"><b>Detail Email:</b><br>${r.emails.join('<br>')}</div></div>`;
+      let listEmail = semuaEmail.filter(e => e.user === dataUser.email);
+      if(filterStatus!== 'Semua') listEmail = listEmail.filter(e => e.status === filterStatus);
+
+      isi = `<div class="card"><h3>Riwayat Email</h3>
+      <input class="search" placeholder="Cari Gmail...">
+      <div class="filter">
+        <div class="filter-btn ${filterStatus==='Semua'?'active':''}" onclick="setFilter('Semua')">Semua</div>
+        <div class="filter-btn ${filterStatus==='Pending'?'active':''}" onclick="setFilter('Pending')">Pending</div>
+        <div class="filter-btn ${filterStatus==='Diterima'?'active':''}" onclick="setFilter('Diterima')">Diterima</div>
+        <div class="filter-btn ${filterStatus==='Ditolak'?'active':''}" onclick="setFilter('Ditolak')">Ditolak</div>
+      </div>
+      <div class="filter">
+        <div class="filter-btn ${filterWaktu==='Semua'?'active':''}" onclick="setFilter(null,'Semua')">Semua</div>
+        <div class="filter-btn" onclick="alert('Fitur filter waktu coming soon')">Hari ini</div>
+        <div class="filter-btn" onclick="alert('Fitur filter waktu coming soon')">7 Hari</div>
+        <div class="filter-btn" onclick="alert('Fitur filter waktu coming soon')">30 Hari</div>
+      </div>`;
+
+      if(listEmail.length === 0) { isi += `<p>Belum ada email</p>`; }
+      listEmail.forEach(e => {
+        isi += `<div class="email-item">
+          <div style="display:flex; justify-content:space-between; align-items:center;">
+            <b>${e.email}</b>
+            <span class="badge ${e.status.toLowerCase()}">${e.status === 'Diterima'? '✓ Diterima' : e.status === 'Ditolak'? '✗ Ditolak' : e.status}</span>
+          </div>
+          <div style="font-size:12px; color:#6b7280; margin-top:5px;">Stor: ${e.tanggalStor}</div>
+          <div style="font-size:12px; color:#6b7280;">Verifikasi: ${e.tanggalVerifikasi}</div>
+          ${e.alasan? `<div class="alasan">Alasan penolakan: ${e.alasan}</div>` : ''}
+        </div>`;
       });
       isi += `</div>`;
     }
-    if(halaman == 'saldo') { isi = `<div class="card-ungu"><div>Saldo Saat Ini</div><h1>Rp${dataUser.saldo.toLocaleString()}</h1></div>`; }
-    if(halaman == 'profil') { isi = `<div class="card-ungu" style="text-align:center;"><h2>Profil Saya</h2><p>${dataUser.email}</p><p>Dana: ${dataUser.dana || '-'}</p></div><div class="card"><div><b>ROLE</b><br>User</div></div>`; }
+    if(halaman == 'saldo') {
+      isi = `<div class="card-ungu"><div>Saldo Saat Ini</div><h1>Rp${dataUser.saldo.toLocaleString()}</h1></div><div class="card"><h3>Request Withdraw</h3><div class="note">⚠️ Minimal withdraw Rp10.000<br>Dipotong biaya admin Rp1.000</div><label>Pilih Ewallet/Bank</label><select id="selectBank" class="select"><option value="">-- Pilih --</option><option value="DANA">DANA</option><option value="OVO">OVO</option><option value="GOPAY">GOPAY</option><option value="BCA">BCA</option></select><label>No Rekening / No HP</label><input id="inputNoRek" class="input" type="text" value="${dataUser.noRek}"><label>Nominal Withdraw</label><input id="inputNominal" class="input" type="number" placeholder="Minimal 10000"><button class="btn" onclick="requestWithdraw()">💸 Ajukan Withdraw</button></div>`;
+    }
+    if(halaman == 'profil') { isi = `<div class="card-ungu" style="text-align:center;"><h2>Profil Saya</h2><p>${dataUser.email}</p></div>`; }
 
     // HALAMAN ADMIN
     if(halaman == 'admin') {
-      const totalPending = semuaSetoran.filter(s => s.status === 'Pending').length;
-      isi = `<div class="card-ungu"><h2>Dashboard Admin</h2></div>
-      <div class="card">
-        <h3>Kontrol Cepat</h3>
-        <button class="btn ${setting.storBuka? 'btn-merah' : 'btn-hijau'}" onclick="toggleStor()">${setting.storBuka? '🔒 Tutup Setoran' : '🔓 Buka Setoran'}</button>
-        <button class="btn ${setting.generateBuka? 'btn-merah' : 'btn-hijau'}" style="margin-top:10px;" onclick="toggleGenerate()">${setting.generateBuka? '🔒 Tutup Generate' : '🔓 Buka Generate'}</button>
-      </div>
-      <div class="card"><h3>Statistik</h3><p>Total Setoran: ${semuaSetoran.length}</p><p>Pending: ${totalPending}</p><p>Saldo User: Rp${dataUser.saldo.toLocaleString()}</p></div>`;
+      const pending = semuaEmail.filter(e => e.status === 'Pending').length;
+      isi = `<div class="card-ungu"><h2>Dashboard Admin</h2></div><div class="card"><h3>Statistik</h3><p>Total Email: ${semuaEmail.length}</p><p>Pending: ${pending}</p><p>Saldo User: Rp${dataUser.saldo.toLocaleString()}</p></div>`;
     }
     if(halaman == 'adminSetoran') {
-      isi = `<div class="card"><h3>Rekap Semua Setoran</h3>`;
-      if(semuaSetoran.length === 0) { isi += `<p>Belum ada setoran</p>`; }
-      semuaSetoran.forEach(s => {
-        isi += `<div class="email-item" onclick="toggleDetail(${s.id})"><div><b>${s.user}</b><div>${s.tanggal}</div><div>${s.jumlah} Email - Dana: ${s.dana}</div></div><div style="display:flex; gap:5px; align-items:center;"><span class="badge ${s.status.toLowerCase()}">${s.status}</span>${s.status==='Pending'?`<button class="btn btn-hijau" style="padding:5px 10px; width:auto;" onclick="event.stopPropagation(); ubahStatus(${s.id},'Diterima')">Terima</button><button class="btn btn-merah" style="padding:5px 10px; width:auto;" onclick="event.stopPropagation(); ubahStatus(${s.id},'Ditolak')">Tolak</button>`:''}</div><div id="detail-${s.id}" class="detail-box" style="display:none;"><b>Detail Email:</b><br>${s.emails.join('<br>')}</div></div>`;
+      let listEmail = semuaEmail;
+      isi = `<div class="card"><h3>Rekap Semua Email</h3>`;
+      if(listEmail.length === 0) { isi += `<p>Belum ada email</p>`; }
+      listEmail.forEach(e => {
+        isi += `<div class="email-item">
+          <div style="display:flex; justify-content:space-between; align-items:center;">
+            <div><b>${e.email}</b><div style="font-size:12px;">User: ${e.user}</div><div style="font-size:12px;">Stor: ${e.tanggalStor}</div></div>
+            <span class="badge ${e.status.toLowerCase()}">${e.status}</span>
+          </div>
+          ${e.status==='Pending'?`<div style="display:flex; gap:5px; margin-top:10px;"><button class="btn btn-hijau" style="padding:5px 10px; width:auto;" onclick="ubahStatusEmail(${e.id},'Diterima')">Terima</button><button class="btn btn-merah" style="padding:5px 10px; width:auto;" onclick="ubahStatusEmail(${e.id},'Ditolak')">Tolak</button></div>`:''}
+          ${e.alasan? `<div class="alasan">Alasan: ${e.alasan}</div>` : ''}
+        </div>`;
+      });
+      isi += `</div>`;
+    }
+    if(halaman == 'adminWithdraw') {
+      isi = `<div class="card"><h3>Rekap Withdraw</h3>`;
+      semuaWithdraw.forEach(w => {
+        isi += `<div class="email-item"><div><b>${w.user}</b><div>${w.bank} - ${w.noRek}</div><div>Request: Rp${w.nominal.toLocaleString()} → Diterima: Rp${w.diterima.toLocaleString()}</div></div><div style="display:flex; gap:5px;"><span class="badge ${w.status.toLowerCase()}">${w.status}</span>${w.status==='Pending'?`<button class="btn btn-hijau" style="padding:5px 10px; width:auto;" onclick="ubahStatusWithdraw(${w.id},'Diterima')">Bayar</button><button class="btn btn-merah" style="padding:5px 10px; width:auto;" onclick="ubahStatusWithdraw(${w.id},'Ditolak')">Tolak</button>`:''}</div></div>`;
       });
       isi += `</div>`;
     }
     if(halaman == 'adminUser') {
-      isi = `<div class="card"><h3>Atur Saldo User</h3><p>User: ${dataUser.email}</p><p>Saldo Saat Ini: Rp${dataUser.saldo.toLocaleString()}</p><label>Tambah/Kurang Saldo</label><input id="inputTambahSaldo" class="input" type="number" placeholder="Contoh: 50000 atau -10000"><button class="btn btn-kuning" onclick="aturSaldo()">Update Saldo</button></div>`;
+      isi = `<div class="card"><h3>Atur Saldo User</h3><p>Saldo: Rp${dataUser.saldo.toLocaleString()}</p><input id="inputTambahSaldo" class="input" type="number" placeholder="50000 atau -10000"><button class="btn btn-kuning" onclick="aturSaldo()">Update Saldo</button></div>`;
     }
     if(halaman == 'adminSetting') {
       isi = `<div class="card"><h3>Setting Web</h3><label>Harga per Email</label><input id="inputHarga" class="input" type="number" value="${setting.harga}"><label>Password Admin</label><input id="inputPass" class="input" type="text" value="${setting.passwordAdmin}"><button class="btn" onclick="simpanSetting()">Simpan</button></div>`;
     }
     document.getElementById('halaman').innerHTML = isi;
-    updateTombolStor();
   }
   gantiHalaman('beranda', document.querySelector('#navUser.nav-item'));
 </script>
